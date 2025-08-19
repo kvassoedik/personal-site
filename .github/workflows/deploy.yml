@@ -13,15 +13,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy via SSH
+      - name: Deploy via SSH with password
         uses: appleboy/ssh-action@v0.1.8
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
+          password: ${{ secrets.SERVER_PASS }}
           script: |
             cd /var/www/kvass.tatar || (mkdir -p /var/www/kvass.tatar && cd /var/www/kvass.tatar)
-            git pull || git clone git@github.com:kvassoedik/personal-site.git .
+            if [ ! -d ".git" ]; then
+              git clone https://github.com/kvassoedik/personal-site.git .
+            else
+              git pull
+            fi
             npm install
             npm run build
             sudo systemctl restart kvass.service
